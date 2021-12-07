@@ -13,6 +13,9 @@ from random import choice
 from turtle import *
 
 from freegames import floor, vector
+import pygame
+
+pygame.init()
 
 state = {'score': 0}
 path = Turtle(visible=False)
@@ -50,6 +53,8 @@ tiles = [
 ]
 # fmt: on
 
+bg_music = pygame.mixer.Sound("free-python-games/freegames/sound/bg_music.mp3")
+bg_music.play(-1)
 
 def square(x, y):
     """Draw square using path at (x, y)."""
@@ -122,6 +127,12 @@ def move():
     if tiles[index] == 1:
         tiles[index] = 2
         state['score'] += 1
+        coin = pygame.mixer.Sound("free-python-games/freegames/sound/coin.wav")
+        coin.play()
+        if state['score'] == 160:
+            win = pygame.mixer.Sound("free-python-games/freegames/sound/win.wav")
+            win.play()
+            return
         x = (index % 20) * 20 - 200
         y = 180 - (index // 20) * 20
         square(x, y)
@@ -152,6 +163,9 @@ def move():
 
     for point, course in ghosts:
         if abs(pacman - point) < 20:
+            pacman_is_dead = pygame.mixer.Sound("free-python-games/freegames/sound/pacman-is-dead.wav")
+            pacman_is_dead.play()
+            bg_music.stop()
             return
 
     ontimer(move, 100)
