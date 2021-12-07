@@ -1,19 +1,24 @@
 """Pacman, classic arcade game.
-
 Exercises
-
 1. Change the board.
 2. Change the number of ghosts.
 3. Change where pacman starts.
 4. Make the ghosts faster/slower.
 5. Make the ghosts smarter.
 """
+import os
+import sys
+module_path = os.path.abspath(os.getcwd() + '\\..')
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
+import random
 from random import choice
 from turtle import *
 
 from freegames import floor, vector
 import pygame
+
 
 pygame.init()
 
@@ -22,12 +27,14 @@ path = Turtle(visible=False)
 writer = Turtle(visible=False)
 aim = vector(5, 0)
 pacman = vector(-40, -80)
-ghosts = [
+first_ghosts = [
     [vector(-180, 160), vector(5, 0)],
     [vector(-180, -160), vector(0, 5)],
     [vector(100, 160), vector(0, -5)],
     [vector(100, -160), vector(-5, 0)],
 ]
+num = random.randint(1, 4)
+ghosts = first_ghosts[:num]
 # fmt: off
 tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -51,10 +58,16 @@ tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ]
+first_tiles = tiles.copy()
 # fmt: on
 
-bg_music = pygame.mixer.Sound("free-python-games/freegames/sound/bg_music.mp3")
+bg_music = pygame.mixer.Sound("sound/bg_music.mp3")
 bg_music.play(-1)
+keep_going = True
+
+def restart():
+    global keep_going
+    keep_going = False
 
 def square(x, y):
     """Draw square using path at (x, y)."""
@@ -113,6 +126,40 @@ def world():
 
 
 def move():
+    global pacman
+    global ghosts
+    global tiles
+    global keep_going
+    global state
+
+    if not keep_going:
+        state = {'score': 0}
+        pacman = vector(-40, -80)
+        ghosts = first_ghosts[:num]
+        tiles = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+            0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0,
+            0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ]
+        world()
+        keep_going = True
     """Move pacman and all ghosts."""
     writer.undo()
     writer.write(state['score'])
@@ -127,10 +174,10 @@ def move():
     if tiles[index] == 1:
         tiles[index] = 2
         state['score'] += 1
-        coin = pygame.mixer.Sound("free-python-games/freegames/sound/coin.wav")
+        coin = pygame.mixer.Sound("sound/coin.wav")
         coin.play()
         if state['score'] == 160:
-            win = pygame.mixer.Sound("free-python-games/freegames/sound/win.wav")
+            win = pygame.mixer.Sound("sound/win.wav")
             win.play()
             return
         x = (index % 20) * 20 - 200
@@ -163,7 +210,7 @@ def move():
 
     for point, course in ghosts:
         if abs(pacman - point) < 20:
-            pacman_is_dead = pygame.mixer.Sound("free-python-games/freegames/sound/pacman-is-dead.wav")
+            pacman_is_dead = pygame.mixer.Sound("sound/pacman-is-dead.wav")
             pacman_is_dead.play()
             bg_music.stop()
             return
@@ -189,6 +236,8 @@ onkey(lambda: change(5, 0), 'Right')
 onkey(lambda: change(-5, 0), 'Left')
 onkey(lambda: change(0, 5), 'Up')
 onkey(lambda: change(0, -5), 'Down')
+onkey(lambda: restart(), 's')
+onkey(lambda: Screen().bye(), 'b')
 world()
 move()
 done()
